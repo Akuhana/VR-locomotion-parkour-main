@@ -56,8 +56,8 @@ public class LocomotionTechnique : MonoBehaviour
             if(Math.Abs(minDistanceDown - deltaYDown) > 0.1f)
             {
                 // Set threshold for totalEnergy
-                Debug.Log(totalEnergy);
-                // totalEnergy = Math.Min(totalEnergy, 0.5f);
+                // Debug.Log(totalEnergy);
+                totalEnergy = Math.Min(totalEnergy, 0.5f);
 
                 Vector3 jumpDirection = new Vector3(cameraRig.centerEyeAnchor.forward.x, 1, cameraRig.centerEyeAnchor.forward.z);
                 frogRb.AddForce(5 * totalEnergy * jumpDirection, ForceMode.Impulse);
