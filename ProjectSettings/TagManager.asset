@@ -11,6 +11,7 @@ TagManager:
   - done
   - objectInteractionTask
   - CameraRig
+  - RightHand
   layers:
   - Default
   - TransparentFX

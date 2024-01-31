@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Oculus.Interaction;
 public class SelectionTaskMeasure : MonoBehaviour
 {
     public GameObject targerT;
@@ -27,6 +28,8 @@ public class SelectionTaskMeasure : MonoBehaviour
     private int part;
     public float partSumTime;
     public float partSumErr;
+    private OVRHand rightHand;
+    [SerializeField] private GameObject handVisualLeft;
 
 
     // Start is called before the first frame update
@@ -38,6 +41,9 @@ public class SelectionTaskMeasure : MonoBehaviour
         donePanel.SetActive(false);
         scoreText.text = "Part" + part.ToString();
         taskStartPanel.SetActive(false);
+        rightHand = GameObject.FindGameObjectWithTag("RightHand").GetComponent<OVRHand>();
+        // StartOneTask();
+        // isTaskStart = true;
     }
 
     // Update is called once per frame
@@ -47,6 +53,12 @@ public class SelectionTaskMeasure : MonoBehaviour
         {
             // recording time
             taskTime += Time.deltaTime;
+
+            objectT.transform.SetPositionAndRotation(rightHand.transform.position, rightHand.transform.rotation);
+            objectT.transform.position = rightHand.transform.position - rightHand.transform.right * 0.05f;
+            objectT.transform.Rotate(90, -90, 0);
+
+            targerT.transform.position = Camera.main.transform.position + Camera.main.transform.forward * 0.4f - Camera.main.transform.up * 0.1f;
         }
 
         if (isCountdown)
@@ -65,7 +77,9 @@ public class SelectionTaskMeasure : MonoBehaviour
         targetTStartingPos = taskUI.transform.position + taskUI.transform.forward * 0.75f + taskUI.transform.up * 1.2f;
         objectT = Instantiate(objectTPrefab, objectTStartingPos, new Quaternion(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f)));
         targerT = Instantiate(targerTPrefab, targetTStartingPos, new Quaternion(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f)));
+        handVisualLeft.SetActive(true);
     }
+    
 
     public void EndOneTask()
     {
@@ -81,6 +95,7 @@ public class SelectionTaskMeasure : MonoBehaviour
         {
             manipulationError += targerT.transform.GetChild(i).transform.position - objectT.transform.GetChild(i).transform.position;
         }
+        
         scoreText.text = scoreText.text + "Time: " + taskTime.ToString("F1") + ", offset: " + manipulationError.magnitude.ToString("F2") + "\n";
         partSumErr += manipulationError.magnitude;
         partSumTime += taskTime;
@@ -105,12 +120,16 @@ public class SelectionTaskMeasure : MonoBehaviour
             scoreText.text = "Done Part" + part.ToString();
             part += 1;
             completeCount = 0;
+            parkourCounter.locomotionTech.isAllowedToJump = true; // Allow to jump again
+            handVisualLeft.SetActive(false);
         }
         else
         {
             yield return new WaitForSeconds(t);
             isCountdown = false;
             startPanelText.text = "start";
+            StartOneTask();
+            isTaskStart = true;
         }
         isCountdown = false;
         yield return 0;

@@ -44,6 +44,7 @@ public class ParkourCounter : MonoBehaviour
     public GameObject coinTextGO;
     public GameObject recordTextGO;
     public GameObject endTextGO;
+    public GameObject uiContainer;
     public AudioSource backgroundMusic;
     public AudioSource endSoundEffect;
     public SelectionTaskMeasure selectionTaskMeasure;
@@ -117,10 +118,11 @@ public class ParkourCounter : MonoBehaviour
                 part3Time = timeCounter - (part1Time + part2Time);
                 part3Count = coinCount - (part1Count + part2Count);
                 UpdateRecordText(3, part3Time, part3Count, 23);
-                timeTextGO.SetActive(false);
-                coinTextGO.SetActive(false);
-                recordTextGO.SetActive(false);
+                // timeTextGO.SetActive(false);
+                // coinTextGO.SetActive(false);
+                // recordTextGO.SetActive(false);
                 endTextGO.SetActive(true);
+                uiContainer.SetActive(false);
                 endTextGO.GetComponent<TMP_Text>().text = "Parkour Finished!\n" + recordText.text +
                     "\ntotal: " + timeCounter.ToString("F1") + ", " + coinCount.ToString() + "/69";
                 Debug.Log(endTextGO.GetComponent<TMP_Text>().text);
@@ -140,6 +142,13 @@ public class ParkourCounter : MonoBehaviour
     {
         string newRecords = "loco" + part.ToString() + ": " + time.ToString("F1") + ", " + coinsCount + "/" + coinsInPart + "\n" +
                             "obj"  + part.ToString() + ": " + (selectionTaskMeasure.partSumTime/5f).ToString("F1") + "," + (selectionTaskMeasure.partSumErr/5).ToString("F2");
-        recordText.text = recordText.text + "\n" + newRecords;
+
+        // Add \n only if there are already records
+        if (recordText.text.Length > 0)
+        {
+            newRecords = "\n" + newRecords;
+        }
+
+        recordText.text = recordText.text + newRecords;
     }
 }

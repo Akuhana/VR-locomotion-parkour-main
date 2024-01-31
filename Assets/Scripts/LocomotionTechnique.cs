@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Shapes;
 using UnityEngine;
 
 public class LocomotionTechnique : MonoBehaviour
@@ -17,6 +18,12 @@ public class LocomotionTechnique : MonoBehaviour
     public string stage;
     public SelectionTaskMeasure selectionTaskMeasure;
     private GameObject parent;
+
+    [SerializeField] private Line energyLine;
+    private float totalEnergy = 0f;
+    private float minDistanceDown = 0f;
+    public bool isAllowedToJump = true;
+    private string lastStage = "";
     void Start()
     {
         cameraRig = hmd.GetComponent<OVRCameraRig>();
@@ -37,41 +44,42 @@ public class LocomotionTechnique : MonoBehaviour
             cameraRig.UpdatedAnchors -= OnUpdatedAnchors;
         }
     }
-    private float totalEnergy = 0f;
-    private float minDistanceDown = 0f;
+    
     void Update()
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         // Please implement your LOCOMOTION TECHNIQUE in this script :D.
-        if(heightInitialized)
+        if(heightInitialized && isAllowedToJump)
         {
             float deltaYDown = cameraRig.centerEyeAnchor.localPosition.y - startPosY;
             if(deltaYDown < -0.1f)
             {
                 totalEnergy = Math.Max(totalEnergy, -deltaYDown);
+                // Set threshold for totalEnergy
+                totalEnergy = Math.Min(totalEnergy, 0.5f);
+                energyLine.End = new Vector3(totalEnergy*2*5, 0, 0);
+
                 minDistanceDown = Math.Min(minDistanceDown, deltaYDown);
             }
 
             // If player moves up more than 0.1m, use force to jump and release the energy
             if(Math.Abs(minDistanceDown - deltaYDown) > 0.1f)
             {
-                // Set threshold for totalEnergy
-                // Debug.Log(totalEnergy);
-                totalEnergy = Math.Min(totalEnergy, 0.5f);
-
+                
                 Vector3 jumpDirection = new Vector3(cameraRig.centerEyeAnchor.forward.x, 1, cameraRig.centerEyeAnchor.forward.z);
                 frogRb.AddForce(5 * totalEnergy * jumpDirection, ForceMode.Impulse);
 
                 // Reset for next jump
                 totalEnergy = 0f;
                 minDistanceDown = 0f;
+                energyLine.End = new Vector3(0, 0, 0);
             }
             
             // Keyboard input for testing. Use force to jump the player at 45 degree angle in the direction he is facing.
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 Vector3 jumpDirection = new Vector3(cameraRig.centerEyeAnchor.forward.x, 1, cameraRig.centerEyeAnchor.forward.z);
-                frogRb.AddForce(10 * totalEnergy * jumpDirection, ForceMode.Impulse);
+                frogRb.AddForce(10 * 0.3f * jumpDirection, ForceMode.Impulse);
             }
 
             parent.transform.rotation = Quaternion.Euler(0, cameraRig.centerEyeAnchor.rotation.eulerAngles.y, 0);
@@ -109,6 +117,11 @@ public class LocomotionTechnique : MonoBehaviour
         }
         else if (other.CompareTag("objectInteractionTask"))
         {
+            if (lastStage == stage)
+            {
+                // Make sure the task is not triggered twice.
+                return;
+            }
             selectionTaskMeasure.isTaskStart = true;
             selectionTaskMeasure.scoreText.text = "";
             selectionTaskMeasure.partSumErr = 0f;
@@ -118,7 +131,10 @@ public class LocomotionTechnique : MonoBehaviour
             Vector3 tmpTarget = new Vector3(hmd.transform.position.x, tempValueY, hmd.transform.position.z);
             selectionTaskMeasure.taskUI.transform.LookAt(tmpTarget);
             selectionTaskMeasure.taskUI.transform.Rotate(new Vector3(0, 180f, 0));
-            selectionTaskMeasure.taskStartPanel.SetActive(true);
+            
+            isAllowedToJump = false;
+            selectionTaskMeasure.StartOneTask();
+            lastStage = stage;
         }
         else if (other.CompareTag("coin"))
         {
