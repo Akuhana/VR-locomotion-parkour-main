@@ -4,20 +4,13 @@ using UnityEngine;
 
 public class FollowPlayer : MonoBehaviour
 {
-
-    private Transform playerTransform;
-    // Start is called before the first frame update
-    void Start()
-    {
-
-        // Get gameobject with tag "CameraRig"
-        playerTransform = GameObject.FindGameObjectWithTag("CameraRig").transform;
-    }
+    [SerializeField] private float x = 0.2f;
+    [SerializeField] private float y = 0.0f;
 
     // Update is called once per frame
     void Update()
     {
-        transform.position = Camera.main.transform.position + Camera.main.transform.forward * 0.4f + Camera.main.transform.right * 0.2f;
+        transform.position = Camera.main.transform.position + Camera.main.transform.forward * 0.4f + Camera.main.transform.right * x + Camera.main.transform.up * y;
         transform.LookAt(Camera.main.transform.position);
         transform.Rotate(0, 180, 0);
     }

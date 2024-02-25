@@ -17,13 +17,15 @@ public class LocomotionTechnique : MonoBehaviour
     public ParkourCounter parkourCounter;
     public string stage;
     public SelectionTaskMeasure selectionTaskMeasure;
-    private GameObject parent;
+    private GameObject parent; // Frog
 
     [SerializeField] private Line energyLine;
     private float totalEnergy = 0f;
     private float minDistanceDown = 0f;
     public bool isAllowedToJump = true;
     private string lastStage = "";
+    [SerializeField] private GameObject thumbsUpUIGuide;
+
     void Start()
     {
         cameraRig = hmd.GetComponent<OVRCameraRig>();
@@ -89,8 +91,11 @@ public class LocomotionTechnique : MonoBehaviour
                 Vector3 frogPos = parent.transform.position;
                 Vector3 hmdPos = hmd.transform.position;
     
-                // The camera should always be behind the frog. Calculated based on the direction the frog is facing
-                Vector3 moveToPos = new Vector3(frogPos.x - (cameraRig.centerEyeAnchor.forward.x * 3f), hmdPos.y, frogPos.z - (cameraRig.centerEyeAnchor.forward.z * 3f));
+                // The camera should always be behind the frog. Calculated based on the direction the frog is facing. Make sure to account for movement in room. Centereyeanchor changes position based on movement in room.
+                Vector3 moveToPos = new Vector3(frogPos.x - (cameraRig.centerEyeAnchor.forward.x * 3f) - cameraRig.centerEyeAnchor.localPosition.x, hmdPos.y, frogPos.z  - (cameraRig.centerEyeAnchor.forward.z * 3f) - cameraRig.centerEyeAnchor.localPosition.z);
+
+                // Set position for centerEyeAnchor to 0
+                // cameraRig.centerEyeAnchor.localPosition = new Vector3(0, cameraRig.centerEyeAnchor.localPosition.y, 0);
 
                 // Use lerp to move hmd to frog position
                 hmd.transform.position = Vector3.Lerp(hmdPos, moveToPos, 0.05f);
@@ -104,6 +109,10 @@ public class LocomotionTechnique : MonoBehaviour
             {
                 this.transform.position = parkourCounter.currentRespawnPos;
             }
+        }
+
+        if(parent.transform.position.y < 0.05f){
+            parent.transform.position = parkourCounter.currentRespawnPos;
         }
     }
 
@@ -121,6 +130,9 @@ public class LocomotionTechnique : MonoBehaviour
             {
                 // Make sure the task is not triggered twice.
                 return;
+            }
+            if(stage == parkourCounter.startBanner.name){
+                thumbsUpUIGuide.SetActive(true); // Show thumbs up UI guide first time
             }
             selectionTaskMeasure.isTaskStart = true;
             selectionTaskMeasure.scoreText.text = "";
